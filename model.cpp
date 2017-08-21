@@ -4,6 +4,7 @@
 #include <math.h>
 #define GMAX 100 // no. of topics to be added to globalList
 #define UMAX 100 // no. of times a user will tweet
+#define TMAX 600 // max time to simulate
 
 using namespace std;
 
@@ -27,11 +28,13 @@ public:
             for (int j = 0; j < deg/2; j++) {
                 lo = (numUsers + i - rand()%n + 1) % numUsers;
                 hi = (i + rand()%n + 1) % numUsers;
-                addEdge(i, lo); // check if edge already exists
+                // TODO: check if edge already exists
+                addEdge(i, lo);
                 addEdge(i, hi);
             }
         }
-        // do edge swapping
+        // TODO: do edge swapping
+        cout << "graph initiated" << endl;
     }
 };
 
@@ -54,13 +57,14 @@ public:
         b = bb;
         l1 = ll1;
         l2 = ll2;
+        cout << "model created" << endl;
     }
 
     double nextTime(double rateParameter) {
         return -log(1. - (double) rand() / (RAND_MAX + 1.)) / rateParameter;
     }
 
-    void timeSim() {
+    void getTimeSim() {
         // calculates the times at which (global/user) topic adoptions are going to happen
         int tmp = (int)nextTime(l1); //cout << tmp << endl;
         gtime.push_back(tmp);
@@ -76,11 +80,20 @@ public:
                 tmp = ltime[i][j-1] + (int)nextTime(l2);
                 ltime[i].push_back(tmp);
             }
-        }        
+        }
+    }
+
+    void timeSim() {
+        cout << "simulating time" << endl;
+        for (int t = 0; t < TMAX; t++) {
+            // global topic addition
+            // for all users topic adoption
+        }
     }
 
     void run() {
         g.init();
+        getTimeSim();
         timeSim();
     }
 
