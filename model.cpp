@@ -22,18 +22,48 @@ public:
         ngb[u].push_back(v);
         ngb[v].push_back(u);
     }
+    bool checkEdge(int u, int v) {
+        int size = ngb[u].size();
+        for(int i=0;i<size;i++) {
+            if(ngb[u][i] == v)
+                return true;
+        }
+        return false;
+    }
+    void changeEdge(int u, int v, int w) {
+        int i,size;
+        /*size = ngb[u].size();
+        for(i=0;i<size;i++) {
+            if(ngb[u][i] == v) {
+                ngb[u][i] = w;
+                break;
+            }
+        }*/
+        ngb[w].push_back(u);
+        size = ngb[v].size();
+        for(i=0;i<size;i++) {
+            if(ngb[v][i] == u) {
+                ngb[v].erase(ngb[v].begin()+i);
+                break;
+            }
+        }
+    }
     void init() {
         int lo, hi, n = numUsers/2;
         for (int i = 0; i < numUsers; i++) {
             for (int j = 0; j < deg/2; j++) {
-                lo = (numUsers + i - rand()%n + 1) % numUsers;
-                hi = (i + rand()%n + 1) % numUsers;
-                // TODO: check if edge already exists
+                do {
+                    lo = (numUsers + i - rand()%n + 1) % numUsers;
+                }while(checkEdge(i,lo));
                 addEdge(i, lo);
+                do {
+                    hi = (i + rand()%n + 1) % numUsers;
+                }while(checkEdge(i,hi));
                 addEdge(i, hi);
             }
         }
         // TODO: do edge swapping
+        
         cout << "graph initiated" << endl;
     }
 };
