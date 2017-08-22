@@ -5,6 +5,7 @@
 #define GMAX 100 // no. of topics to be added to globalList
 #define UMAX 100 // no. of times a user will tweet
 #define TMAX 600 // max time to simulate
+#define rewire 0.1
 
 using namespace std;
 
@@ -18,18 +19,21 @@ public:
         ngb.resize(n);
         deg = k;
     }
+
     void addEdge(int u, int v) {
         ngb[u].push_back(v);
         ngb[v].push_back(u);
     }
+
     bool checkEdge(int u, int v) {
         int size = ngb[u].size();
-        for(int i=0;i<size;i++) {
+        for (int i = 0; i < size; i++) {
             if(ngb[u][i] == v)
                 return true;
         }
         return false;
     }
+
     void changeEdge(int u, int v, int w) {
         int i,size;
         /*size = ngb[u].size();
@@ -41,29 +45,42 @@ public:
         }*/
         ngb[w].push_back(u);
         size = ngb[v].size();
-        for(i=0;i<size;i++) {
+        for(i = 0; i < size; i++) {
             if(ngb[v][i] == u) {
                 ngb[v].erase(ngb[v].begin()+i);
                 break;
             }
         }
     }
+
     void init() {
         int lo, hi, n = numUsers/2;
-        for (int i = 0; i < numUsers; i++) {
-            for (int j = 0; j < deg/2; j++) {
+        int i,j,w;
+        for (i = 0; i < numUsers; i++) {
+            for (j = 0; j < deg/2; j++) {
                 do {
                     lo = (numUsers + i - rand()%n + 1) % numUsers;
-                }while(checkEdge(i,lo));
+                } while(checkEdge(i,lo));
                 addEdge(i, lo);
                 do {
                     hi = (i + rand()%n + 1) % numUsers;
-                }while(checkEdge(i,hi));
+                } while(checkEdge(i,hi));
                 addEdge(i, hi);
             }
         }
         // TODO: do edge swapping
-        
+        //double rewiringProb = 0.1;
+        for (i = 0; i < numUsers; i++) {
+            for (j = 0; j < ngb[i].size(); j++) {
+                if (rand() / (RAND_MAX + 1.) < rewire) {
+                    do {
+                        w = rand()%numUsers;
+                    } while (checkEdge(i,w));
+                    changeEdge(i,ngb[i][j],w);
+                    ngb[i][j] = w;
+                }
+            }
+        }
         cout << "graph initiated" << endl;
     }
 };
@@ -73,6 +90,7 @@ public:
     vector<double> globalList;
     vector<int> gtime;
     vector< vector<double> > localList;
+    vector< vector<int> > localTopics;
     vector< vector<int> > ltime;
     Graph g;
     double A, B, a, b, l1, l2;
@@ -115,9 +133,50 @@ public:
 
     void timeSim() {
         cout << "simulating time" << endl;
+        int n = g.numUsers, size;
+        int gc = 0;
+        vector<int> lc(n,0);
+        vector<double> topic_weight(GMAX);
+        int i,j,k,l;
         for (int t = 0; t < TMAX; t++) {
+            // update weights
+            size = globalList.size();
+            for (i = 0; i < size; i++) {
+                globalList[i] /= exp(a);
+            }
+            for (i = 0; i < n; i++) {
+                size = localList[i].size();
+                for (j = 0; j < size; j++) {
+                    localList[i][j] /= exp(b);
+                }
+            }
             // global topic addition
+            if (gtime[gc] == t) {
+                gc++;
+                globalList.push_back(A);
+            }
             // for all users topic adoption
+
+            for (i = 0; i < n; i++) {
+                if (ltime[i][lc[i]] == t) {
+                    lc[i]++;
+                    for(j = 0; j < gc; j++) {
+                        topic_weight[j] = globalList[j];
+                    }
+                    for(j = 0; j < g.ngb[i].size(); j++) {
+                        k = g.ngb[i][j];
+                        for(l = 0; l < localTopics[k].size(); l++) {
+                            topic_weight[localTopics[k][l]] += localList[k][l];
+                        }
+                    }
+                    for(j = 1; j < gc; j++) {
+                        topic_weight[j] += topic_weight[j-1];
+                    }
+                    auto it = lower_bound(topic_weight.begin(), topic_weight.begin()+gc, ((double) rand() / (RAND_MAX + 1.))*topic_weight[gc-1]);
+                    localTopics[i].push_back((int) (it - topic_weight.begin()));
+                    localList[i].push_back(B);
+                }
+            }
         }
     }
 
@@ -135,6 +194,7 @@ public:
 int main() {
     // code
     srand(time(NULL));
+    // Model(int n, int k, double AA, double BB, double aa, double bb, double ll1, double ll2)
     Model m(10001, 20, 0.1, 0.2, 0.3, 0.1, 0.2, 0.2);
     m.run();
     return 0;
