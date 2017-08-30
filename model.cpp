@@ -111,7 +111,6 @@ public:
 
     void getTimeSim() {
         // calculates the times at which (global/user) topic adoptions are going to happen
-        // TODO: intial set of topics
         int tmp = (int)nextTime(l1);
         int tmp1;
         gtime.push_back(tmp);
