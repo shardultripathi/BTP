@@ -3,9 +3,11 @@
 #include <random>
 #include <fstream>
 #include <math.h>
-#define GMAX 100 // no. of topics to be added to globalList
+#include <omp.h>
+#define GMAX 500 // no. of topics to be added to globalList
 #define UMAX 1000 // no. of times a user will tweet
-#define TMAX 1000 // max time to simulate
+#define TMAX 1500 // max time to simulate
+#define GINIT 20 // initial no. of topics in global list
 #define rewire 0.1
 
 using namespace std;
@@ -37,13 +39,6 @@ public:
 
     void changeEdge(int u, int v, int w) {
         int i,size;
-        /*size = ngb[u].size();
-        for(i=0;i<size;i++) {
-            if(ngb[u][i] == v) {
-                ngb[u][i] = w;
-                break;
-            }
-        }*/
         ngb[w].push_back(u);
         size = ngb[v].size();
         for(i = 0; i < size; i++) {
@@ -69,8 +64,6 @@ public:
                 addEdge(i, hi);
             }
         }
-        // TODO: do edge swapping
-        //double rewiringProb = 0.1;
         for (i = 0; i < numUsers; i++) {
             for (j = 0; j < ngb[i].size(); j++) {
                 if (rand() / (RAND_MAX + 1.) < rewire) {
@@ -82,7 +75,7 @@ public:
                 }
             }
         }
-        cout << "graph initiated" << endl;
+        cout << "graph initialised" << endl;
     }
 };
 
@@ -97,7 +90,7 @@ public:
     double A, B, a, b, l1, l2;
     ofstream outfile;
 
-    Model(int n, int k, double AA, double BB, double aa, double bb, double ll1, double ll2, string of_name) {
+    void init(int n, int k, double AA, double BB, double aa, double bb, double ll1, double ll2, string of_name) {
         g.setNumUsers(n, k);
         localList.resize(n);
         localTopics.resize(n);
@@ -109,16 +102,15 @@ public:
         l1 = ll1;
         l2 = ll2;
         outfile.open(of_name);
-        cout << "model created" << endl;
+        cout << "model initialised" << endl;
     }
 
-    double nextTime(double rateParameter) {
+    inline double nextTime(double rateParameter) {
         return -log(1. - (double) rand() / (RAND_MAX + 1.)) / rateParameter;
     }
 
     void getTimeSim() {
         // calculates the times at which (global/user) topic adoptions are going to happen
-        // TODO: intial set of topics
         int tmp = (int)nextTime(l1);
         int tmp1;
         gtime.push_back(tmp);
@@ -131,7 +123,7 @@ public:
         }
         int n = g.numUsers;
         for (int i = 0; i < n; i++) {
-            tmp = (int)nextTime(l2);
+            tmp = gtime[GINIT-1] + (int)nextTime(l2);
             ltime[i].push_back(tmp);
             for (int j = 1; j < UMAX; j++) {
                 do {
@@ -139,9 +131,9 @@ public:
                 } while (tmp1 == 0);
                 tmp = ltime[i][j-1] + tmp1;
                 ltime[i].push_back(tmp);
-                // cout<<tmp<<" ";
+                // cout << tmp << " ";
             }
-            // cout<<endl;
+            // cout << endl;
         }
     }
 
@@ -178,7 +170,7 @@ public:
             }
             for (i = 0; i < n; i++) {
                 if (ltime[i][lc[i]] == t) {
-                    // cout<<i<<" ";
+                    // cout << i << " ";
                     lc[i]++;
                     for(j = 0; j < gc; j++) {
                         topic_weight[j] = globalList[j];
@@ -197,15 +189,16 @@ public:
                     localTopics[i].push_back(topic_id);
                     topic_num[topic_id]++;
                     localList[i].push_back(B);
-                    // outfile<<i<<" "<<topic_id<<" ";
+                    // outfile << i << " " << topic_id << " ";
                 }
             }
             for (j = 0; j < gc; j++) {
                 outfile << topic_num[j] << " ";
             }
             outfile << endl;
-            // cout<<endl;
+            // cout << endl;
         }
+        cout << "gc: " << gc << endl;
         outfile.close();
     }
 
@@ -220,11 +213,40 @@ public:
     }
 };
 
-int main() {
+int main(int argc, char const *argv[]) {
     // code
-    srand(time(NULL));
-    // Model(int n, int k, double AA, double BB, double aa, double bb, double ll1, double ll2)
-    Model m(10001, 200, 1.0, 0.4, 0.5, 0.3, 1.0/4, 1.0/2, "nodesVsTime.dat");
-    m.run();
+    if (argc < 2) {
+        cout << "usage: " << argv[0] << " <0/1>\n";
+        return -1;
+    }
+
+    if (argv[1][0] == '1') {
+        #pragma omp parallel
+        {
+            srand(int(time(NULL)) ^ omp_get_thread_num());
+            int tid = omp_get_thread_num();
+            string fname = "nodesVsTime" + to_string(tid) + ".dat";
+            Model m;
+            switch(tid) {
+                    //     Model(n,    k,    A,  B,    a,   b,    l1,    l2)
+                case 0: m.init(10001, 200, 1.0, 1.0, 0.05, 0.2, 1.0/4, 1.0/2, fname); m.run(); break;
+                case 1: m.init(10001, 200, 1.0, 1.0, 0.05, 0.2, 1.0/4, 1.0/2, fname); m.run(); break;
+                case 2: m.init(10001, 200, 1.0, 1.0, 0.05, 0.2, 1.0/4, 1.0/2, fname); m.run(); break;
+                case 3: m.init(10001, 200, 1.0, 1.0, 0.05, 0.2, 1.0/4, 1.0/2, fname); m.run(); break;
+                case 4: m.init(10001, 200, 1.0, 1.0, 0.05, 0.2, 1.0/4, 1.0/2, fname); m.run(); break;
+                case 5: m.init(10001, 200, 1.0, 1.0, 0.05, 0.2, 1.0/4, 1.0/2, fname); m.run(); break;
+                case 6: m.init(10001, 200, 1.0, 1.0, 0.05, 0.2, 1.0/4, 1.0/2, fname); m.run(); break;
+                case 7: m.init(10001, 200, 1.0, 1.0, 0.05, 0.2, 1.0/4, 1.0/2, fname); m.run(); break;
+                default: ;
+            }
+        }
+    } else {
+        srand(time(NULL));
+        string fname = "nodesVsTime.dat";
+        Model m;
+        // Model(n,    k,      A,    B,     a,   b,    l1,    l2)
+        m.init(10001, 200, 10000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, fname);
+        m.run();
+    }
     return 0;
 }
