@@ -55,9 +55,10 @@ for iter in range(numProcesses):
 	mse = mean_squared_error(ransac.predict(X), Y)
 	if mse < threshold1:
 		print(str(iter)+': Viral Regime')
-		plt.plot(X, Y, 'o', label='Highest Peak')
+		plt.plot(X, Y, 'o', label='log(Highest Peak)')
 		plt.plot(line_X, line_y_ransac, color='yellow', linewidth=2, label='Fitted curve')
 		plt.legend(loc='upper right')
+		plt.xlabel('log(Topic rank)')
 		plt.savefig('figures/fig'+str(iter)+'.png')
 		# plt.show()
 		exit()
@@ -75,8 +76,9 @@ for iter in range(numProcesses):
 	else:
 		print(str(iter)+':Sub-viral Regime')
 	print(max(dy))
-	plt.plot(x, y, 'o', label='Highest Peak')
+	plt.plot(x, y, 'o', label='log(Highest Peak)')
 	plt.plot(xnew, ynew, 'y-', label='Fitted curve')
 	plt.legend(loc='upper right')
+	plt.xlabel('log(Topic id)')
 	plt.savefig('figures/fig'+str(iter)+'.png')
 	# plt.show()

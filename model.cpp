@@ -198,7 +198,7 @@ public:
             outfile << endl;
             // cout << endl;
         }
-        cout << "gc: " << gc << endl;
+        // cout << "gc: " << gc << endl;
         outfile.close();
     }
 
