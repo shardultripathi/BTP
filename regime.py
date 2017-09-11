@@ -10,64 +10,67 @@ from math import log
 
 threshold1 = 1
 threshold2 = 5
+numProcesses = int(sys.argv[1])
 
 y = [0.0]*500
 
-with open("nodesVsTime.dat") as file:
-    for line in file: 
-        line = line.strip().split()
-        for i,x in enumerate(line):
-        	x = int(x)
-        	if x == 0:
-        		logx = 0.0
-        	else:
-        		logx = log(x)
-        	y[i] = max(y[i], logx)
+for iter in range(numProcesses):
+	with open('nodesVsTime'+iter+'.dat') as file:
+	    for line in file: 
+	        line = line.strip().split()
+	        for i,x in enumerate(line):
+	        	x = int(x)
+	        	if x == 0:
+	        		logx = 0.0
+	        	else:
+	        		logx = log(x)
+	        	y[i] = max(y[i], logx)
 
 
-x = [log(i) for i in range(1,501)]
+	x = [log(i) for i in range(1,501)]
 
-# normalise the data
-meanx = statistics.mean(x)
-sdx = statistics.stdev(x)
-x = [(a-meanx)/sdx for a in x]
-meany = statistics.mean(y)
-sdy = statistics.stdev(y)
-y = [(a-meany)/sdy for a in y]
+	# normalise the data
+	meanx = statistics.mean(x)
+	sdx = statistics.stdev(x)
+	x = [(a-meanx)/sdx for a in x]
+	meany = statistics.mean(y)
+	sdy = statistics.stdev(y)
+	y = [(a-meany)/sdy for a in y]
 
-# Check for viral
-X = np.array(x).reshape((len(x),1))
-Y = np.array(y)
-Y = -np.sort(-Y)
+	# Check for viral
+	X = np.array(x).reshape((len(x),1))
+	Y = np.array(y)
+	Y = -np.sort(-Y)
 
-ransac = linear_model.RANSACRegressor()
-ransac.fit(X, Y)
-inlier_mask = ransac.inlier_mask_
-outlier_mask = np.logical_not(inlier_mask)
+	ransac = linear_model.RANSACRegressor()
+	ransac.fit(X, Y)
+	inlier_mask = ransac.inlier_mask_
+	outlier_mask = np.logical_not(inlier_mask)
 
-# Predict data of estimated models
-line_X = np.arange(X.min(), X.max())[:, np.newaxis]
-line_y_ransac = ransac.predict(line_X)
+	# Predict data of estimated models
+	line_X = np.arange(X.min(), X.max())[:, np.newaxis]
+	line_y_ransac = ransac.predict(line_X)
 
-mse = mean_squared_error(ransac.predict(X), Y)
-if mse < threshold1:
-	print('Viral Regime')
-	exit()
-lowess = sm.nonparametric.lowess(y, x, frac=.03)
-lowess_x = list(zip(*lowess))[0]
-lowess_y = list(zip(*lowess))[1]
-f = interp1d(lowess_x, lowess_y, bounds_error=False)
+	mse = mean_squared_error(ransac.predict(X), Y)
+	if mse < threshold1:
+		print(iter+': Viral Regime')
+		exit()
+	lowess = sm.nonparametric.lowess(y, x, frac=.03)
+	lowess_x = list(zip(*lowess))[0]
+	lowess_y = list(zip(*lowess))[1]
+	f = interp1d(lowess_x, lowess_y, bounds_error=False)
 
-xnew = [i for i in np.arange(min(x),max(x)+.1,0.1)]
-ynew = f(xnew)
+	xnew = [i for i in np.arange(min(x),max(x)+.1,0.1)]
+	ynew = f(xnew)
 
-dy = [(ynew[i+1]-ynew[i])*10. for i in range(len(xnew)-1)]
-if max(dy) > threshold2:
-	print('Super-viral Regime')
-else:
-	print('Sub-viral Regime')
-print(max(dy))
-plt.plot(x, y, 'o')
-plt.plot(lowess_x, lowess_y, 'y*')
-plt.plot(xnew, ynew, 'g-')
-plt.show()
+	dy = [(ynew[i+1]-ynew[i])*10. for i in range(len(xnew)-1)]
+	if max(dy) > threshold2:
+		print(iter+':Super-viral Regime')
+	else:
+		print(iter+':Sub-viral Regime')
+	print(max(dy))
+	plt.plot(x, y, 'o')
+	plt.plot(lowess_x, lowess_y, 'y*')
+	plt.plot(xnew, ynew, 'g-')
+	plt.savefig('fig'+iter+'.png')
+	# plt.show()
