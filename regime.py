@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 import statsmodels.api as sm
 import statistics
+import sys
 from math import log
 
 threshold1 = 1
@@ -15,7 +16,7 @@ numProcesses = int(sys.argv[1])
 y = [0.0]*500
 
 for iter in range(numProcesses):
-	with open('nodesVsTime'+iter+'.dat') as file:
+	with open('data/nodesVsTime'+str(iter)+'.dat') as file:
 	    for line in file: 
 	        line = line.strip().split()
 	        for i,x in enumerate(line):
@@ -53,7 +54,12 @@ for iter in range(numProcesses):
 
 	mse = mean_squared_error(ransac.predict(X), Y)
 	if mse < threshold1:
-		print(iter+': Viral Regime')
+		print(str(iter)+': Viral Regime')
+		plt.plot(X, Y, 'o', label='Highest Peak')
+		plt.plot(line_X, line_y_ransac, color='yellow', linewidth=2, label='Fitted curve')
+		plt.legend(loc='upper right')
+		plt.savefig('figures/fig'+str(iter)+'.png')
+		# plt.show()
 		exit()
 	lowess = sm.nonparametric.lowess(y, x, frac=.03)
 	lowess_x = list(zip(*lowess))[0]
@@ -65,12 +71,12 @@ for iter in range(numProcesses):
 
 	dy = [(ynew[i+1]-ynew[i])*10. for i in range(len(xnew)-1)]
 	if max(dy) > threshold2:
-		print(iter+':Super-viral Regime')
+		print(str(iter)+':Super-viral Regime')
 	else:
-		print(iter+':Sub-viral Regime')
+		print(str(iter)+':Sub-viral Regime')
 	print(max(dy))
-	plt.plot(x, y, 'o')
-	plt.plot(lowess_x, lowess_y, 'y*')
-	plt.plot(xnew, ynew, 'g-')
-	plt.savefig('fig'+iter+'.png')
+	plt.plot(x, y, 'o', label='Highest Peak')
+	plt.plot(xnew, ynew, 'y-', label='Fitted curve')
+	plt.legend(loc='upper right')
+	plt.savefig('figures/fig'+str(iter)+'.png')
 	# plt.show()
