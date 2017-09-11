@@ -6,28 +6,39 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 import statsmodels.api as sm
 import statistics
+from math import log
 
 threshold1 = 1
-threshold2 = 2
+threshold2 = 5
 
-# read x and y
-x = []
-y = []
-with open("file.dat") as file:
+y = [0.0]*500
+
+with open("nodesVsTime.dat") as file:
     for line in file: 
-        xy = line.strip().split() #or some other preprocessing
-        x.append(float(xy[0]))
-        y.append(float(xy[1]))
+        line = line.strip().split()
+        for i,x in enumerate(line):
+        	x = int(x)
+        	if x == 0:
+        		logx = 0.0
+        	else:
+        		logx = log(x)
+        	y[i] = max(y[i], logx)
+
+
+x = [log(i) for i in range(1,501)]
+
+# normalise the data
 meanx = statistics.mean(x)
 sdx = statistics.stdev(x)
 x = [(a-meanx)/sdx for a in x]
 meany = statistics.mean(y)
 sdy = statistics.stdev(y)
 y = [(a-meany)/sdy for a in y]
+
+# Check for viral
 X = np.array(x).reshape((len(x),1))
 Y = np.array(y)
-
-# normalise the data
+Y = -np.sort(-Y)
 
 ransac = linear_model.RANSACRegressor()
 ransac.fit(X, Y)
@@ -42,16 +53,21 @@ mse = mean_squared_error(ransac.predict(X), Y)
 if mse < threshold1:
 	print('Viral Regime')
 	exit()
-lowess = sm.nonparametric.lowess(y, x, frac=.3)
+lowess = sm.nonparametric.lowess(y, x, frac=.03)
 lowess_x = list(zip(*lowess))[0]
 lowess_y = list(zip(*lowess))[1]
 f = interp1d(lowess_x, lowess_y, bounds_error=False)
 
-xnew = [i/10. for i in range(400)]
+xnew = [i for i in np.arange(min(x),max(x)+.1,0.1)]
 ynew = f(xnew)
 
-dy = [(ynew[i+1]-ynew[i])*10. for i in range(399)]
+dy = [(ynew[i+1]-ynew[i])*10. for i in range(len(xnew)-1)]
 if max(dy) > threshold2:
 	print('Super-viral Regime')
 else:
 	print('Sub-viral Regime')
+print(max(dy))
+plt.plot(x, y, 'o')
+plt.plot(lowess_x, lowess_y, 'y*')
+plt.plot(xnew, ynew, 'g-')
+plt.show()
