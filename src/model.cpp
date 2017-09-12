@@ -225,7 +225,7 @@ int main(int argc, char const *argv[]) {
         {
             srand(int(time(NULL)) ^ omp_get_thread_num());
             int tid = omp_get_thread_num();
-            string fname = "nodesVsTime" + to_string(tid) + ".dat";
+            string fname = "../data/nodesVsTime" + to_string(tid) + ".dat";
             Model m;
             switch(tid) {
                     //     Model(n,    k,    A,  B,    a,   b,    l1,    l2)
@@ -242,7 +242,7 @@ int main(int argc, char const *argv[]) {
         }
     } else {
         srand(time(NULL));
-        string fname = "nodesVsTime0.dat";
+        string fname = "../data/nodesVsTime.dat";
         Model m;
         // Model(n,    k,      A,    B,     a,   b,    l1,    l2)
         m.init(10001, 200, 10000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, fname);

@@ -9,14 +9,17 @@ import statistics
 import sys
 from math import log
 
-threshold1 = 1
-threshold2 = 5
+threshold1 = 0.3
+threshold2 = 1
 numProcesses = int(sys.argv[1])
 
-y = [0.0]*500
 
+size = 500
+fname = '../data/nodesVsTime'
 for iter in range(numProcesses):
-	with open('data/nodesVsTime'+str(iter)+'.dat') as file:
+	y = [0.0]*500
+	plt.clf()
+	with open(fname+str(iter)+'.dat') as file:
 	    for line in file: 
 	        line = line.strip().split()
 	        for i,x in enumerate(line):
@@ -26,9 +29,12 @@ for iter in range(numProcesses):
 	        	else:
 	        		logx = log(x)
 	        	y[i] = max(y[i], logx)
+	        	size = i
 
 
-	x = [log(i) for i in range(1,501)]
+	x = [log(i) for i in range(1,size+2)]
+	# x = [i for i in range(1,501)]
+	y = y[:size+1]
 
 	# normalise the data
 	meanx = statistics.mean(x)
@@ -42,27 +48,29 @@ for iter in range(numProcesses):
 	X = np.array(x).reshape((len(x),1))
 	Y = np.array(y)
 	Y = -np.sort(-Y)
+	print(len(Y))
 
-	ransac = linear_model.RANSACRegressor()
+	ransac = linear_model.LinearRegression()
 	ransac.fit(X, Y)
-	inlier_mask = ransac.inlier_mask_
-	outlier_mask = np.logical_not(inlier_mask)
+	# inlier_mask = ransac.inlier_mask_
+	# outlier_mask = np.logical_not(inlier_mask)
 
 	# Predict data of estimated models
 	line_X = np.arange(X.min(), X.max())[:, np.newaxis]
 	line_y_ransac = ransac.predict(line_X)
 
 	mse = mean_squared_error(ransac.predict(X), Y)
+	print('mse',mse)
 	if mse < threshold1:
 		print(str(iter)+': Viral Regime')
 		plt.plot(X, Y, 'o', label='log(Highest Peak)')
 		plt.plot(line_X, line_y_ransac, color='yellow', linewidth=2, label='Fitted curve')
 		plt.legend(loc='upper right')
 		plt.xlabel('log(Topic rank)')
-		plt.savefig('figures/fig'+str(iter)+'.png')
+		plt.savefig('../figures/fig'+str(iter)+'.png')
 		# plt.show()
-		exit()
-	lowess = sm.nonparametric.lowess(y, x, frac=.03)
+		continue
+	lowess = sm.nonparametric.lowess(y, x, frac=.04)
 	lowess_x = list(zip(*lowess))[0]
 	lowess_y = list(zip(*lowess))[1]
 	f = interp1d(lowess_x, lowess_y, bounds_error=False)
@@ -75,10 +83,10 @@ for iter in range(numProcesses):
 		print(str(iter)+':Super-viral Regime')
 	else:
 		print(str(iter)+':Sub-viral Regime')
-	print(max(dy))
+	print('slope',max(dy))
 	plt.plot(x, y, 'o', label='log(Highest Peak)')
 	plt.plot(xnew, ynew, 'y-', label='Fitted curve')
 	plt.legend(loc='upper right')
 	plt.xlabel('log(Topic id)')
-	plt.savefig('figures/fig'+str(iter)+'.png')
+	plt.savefig('../figures/fig'+str(iter)+'.png')
 	# plt.show()
