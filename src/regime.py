@@ -10,7 +10,7 @@ import sys
 from math import log
 
 threshold1 = 0.3
-threshold2 = 1
+threshold2 = -1
 numProcesses = int(sys.argv[1])
 
 
@@ -43,11 +43,12 @@ for iter in range(numProcesses):
 	meany = statistics.mean(y)
 	sdy = statistics.stdev(y)
 	y = [(a-meany)/sdy for a in y]
+	y.sort(reverse=True)
 
 	# Check for viral
 	X = np.array(x).reshape((len(x),1))
 	Y = np.array(y)
-	Y = -np.sort(-Y)
+	# Y = -np.sort(-Y)
 	print(len(Y))
 
 	ransac = linear_model.LinearRegression()
@@ -79,11 +80,11 @@ for iter in range(numProcesses):
 	ynew = f(xnew)
 
 	dy = [(ynew[i+1]-ynew[i])*10. for i in range(len(xnew)-1)]
-	if max(dy) > threshold2:
+	if min(dy) < threshold2:
 		print(str(iter)+':Super-viral Regime')
 	else:
 		print(str(iter)+':Sub-viral Regime')
-	print('slope',max(dy))
+	print('slope',min(dy))
 	plt.plot(x, y, 'o', label='log(Highest Peak)')
 	plt.plot(xnew, ynew, 'y-', label='Fitted curve')
 	plt.legend(loc='upper right')

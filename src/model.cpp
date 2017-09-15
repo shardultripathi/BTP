@@ -228,15 +228,15 @@ int main(int argc, char const *argv[]) {
             string fname = "../data/nodesVsTime" + to_string(tid) + ".dat";
             Model m;
             switch(tid) {
-                    //     Model(n,    k,    A,  B,    a,   b,    l1,    l2)
-                case 0: m.init(10001, 200, 10000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
-                case 1: m.init(10001, 200, 8000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
-                case 2: m.init(10001, 200, 5000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
-                case 3: m.init(10001, 200, 2000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
-                case 4: m.init(10001, 200, 1000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
-                case 5: m.init(10001, 200, 500.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
-                case 6: m.init(10001, 200, 100.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
-                case 7: m.init(10001, 200, 10.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
+                    //     Model(n,    k,    A,       B,    a,   b,    l1,    l2)
+                case 0: m.init(10001, 200, 10000.0, 100.0, 0.20, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
+                case 1: m.init(10001, 200, 10000.0, 100.0, 0.15, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
+                case 2: m.init(10001, 200, 10000.0, 100.0, 0.10, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
+                case 3: m.init(10001, 200, 10000.0, 100.0, 0.05, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
+                case 4: m.init(10001, 200, 10000.0, 100.0, 0.01, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
+                case 5: m.init(10001, 200, 0.5,     100.0, 0.2, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
+                case 6: m.init(10001, 200, 1.0,     100.0, 0.2, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
+                case 7: m.init(10001, 200, 5.0,     100.0, 0.2, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
                 default: ;
             }
         }
