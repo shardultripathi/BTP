@@ -11,7 +11,7 @@
 #define GINIT 20 // initial no. of topics in global list
 #define rewire 0.1
 #define mostpop_prob 0.05
-#define mostpop_num 5
+#define mostpop_num 10
 
 using namespace std;
 
