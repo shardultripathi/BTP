@@ -3,12 +3,15 @@
 #include <random>
 #include <fstream>
 #include <math.h>
+#include <queue>
 #include <omp.h>
 #define GMAX 500 // no. of topics to be added to globalList
 #define UMAX 1000 // no. of times a user will tweet
 #define TMAX 1500 // max time to simulate
 #define GINIT 20 // initial no. of topics in global list
 #define rewire 0.1
+#define mostpop_prob 0.05
+#define mostpop_num 5
 
 using namespace std;
 
@@ -144,6 +147,8 @@ public:
         vector<int> lc(n,0);
         vector<double> topic_weight(GMAX);
         vector<int> topic_num(GMAX);
+        priority_queue<pair<int,int>> q;
+        vector<pair<int,int>> mostpop_q;
         int i,j,k,l,topic_id;
         for (int t = 0; t < TMAX; t++) {
             // update weights
@@ -172,28 +177,40 @@ public:
                 if (ltime[i][lc[i]] == t) {
                     // cout << i << " ";
                     lc[i]++;
-                    for(j = 0; j < gc; j++) {
-                        topic_weight[j] = globalList[j];
-                    }
-                    for(j = 0; j < g.ngb[i].size(); j++) {
-                        k = g.ngb[i][j];
-                        for(l = 0; l < localTopics[k].size(); l++) {
-                            topic_weight[localTopics[k][l]] += localList[k][l];
+                    if (rand() / (RAND_MAX + 1.) < mostpop_prob) {
+                        topic_id = mostpop_q[rand() % mostpop_q.size()].second;
+                    } else {
+                        for(j = 0; j < gc; j++) {
+                            topic_weight[j] = globalList[j];
                         }
+                        for(j = 0; j < g.ngb[i].size(); j++) {
+                            k = g.ngb[i][j];
+                            for(l = 0; l < localTopics[k].size(); l++) {
+                                topic_weight[localTopics[k][l]] += localList[k][l];
+                            }
+                        }
+                        for(j = 1; j < gc; j++) {
+                            topic_weight[j] += topic_weight[j-1];
+                        }
+                        auto it = lower_bound(topic_weight.begin(), topic_weight.begin()+gc, ((double) rand() / (RAND_MAX + 1.))*topic_weight[gc-1]);
+                        topic_id = (int) (it - topic_weight.begin());
                     }
-                    for(j = 1; j < gc; j++) {
-                        topic_weight[j] += topic_weight[j-1];
-                    }
-                    auto it = lower_bound(topic_weight.begin(), topic_weight.begin()+gc, ((double) rand() / (RAND_MAX + 1.))*topic_weight[gc-1]);
-                    topic_id = (int) (it - topic_weight.begin());
+                    
                     localTopics[i].push_back(topic_id);
                     topic_num[topic_id]++;
                     localList[i].push_back(B);
                     // outfile << i << " " << topic_id << " ";
                 }
             }
+            q = priority_queue<pair<int,int>>();
+            mostpop_q.clear();
             for (j = 0; j < gc; j++) {
                 outfile << topic_num[j] << " ";
+                q.push(make_pair(topic_num[j],j));
+            }
+            for (i = 0; !q.empty() && i < mostpop_num; i++) {
+                mostpop_q.push_back(q.top());
+                q.pop();
             }
             outfile << endl;
             // cout << endl;
@@ -225,24 +242,24 @@ int main(int argc, char const *argv[]) {
         {
             srand(int(time(NULL)) ^ omp_get_thread_num());
             int tid = omp_get_thread_num();
-            string fname = "../data/nodesVsTime" + to_string(tid) + ".dat";
+            string fname = "../data/nodesVsTimef2" + to_string(tid) + ".dat";
             Model m;
             switch(tid) {
                     //     Model(n,    k,    A,       B,    a,   b,    l1,    l2)
-                case 0: m.init(10001, 200, 10000.0, 100.0, 0.005, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
-                case 1: m.init(10001, 200, 100.0, 100.0, 0.15, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
-                case 2: m.init(10001, 200, 100.0, 100.0, 0.10, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
-                case 3: m.init(10001, 200, 100.0, 100.0, 0.05, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
-                case 4: m.init(10001, 200, 100.0, 100.0, 0.01, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
-                case 5: m.init(10001, 200, 100.0, 100.0, 0.005, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
-                case 6: m.init(10001, 200, 100.0, 100.0, 0.25, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
-                case 7: m.init(10001, 200, 100.0, 100.0, 0.30, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
+                case 0: m.init(10001, 200, 10000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
+                case 1: m.init(10001, 200, 5000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
+                case 2: m.init(10001, 200, 3000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
+                case 3: m.init(10001, 200, 1000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
+                case 4: m.init(10001, 200, 500.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
+                case 5: m.init(10001, 200, 300.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
+                case 6: m.init(10001, 200, 100.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
+                case 7: m.init(10001, 200, 10.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
                 default: ;
             }
         }
     } else {
         srand(time(NULL));
-        string fname = "../data/nodesVsTime.dat";
+        string fname = "../data/nodesVsTimef2.dat";
         Model m;
         // Model(n,    k,      A,    B,     a,   b,    l1,    l2)
         m.init(10001, 200, 10000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, fname);
