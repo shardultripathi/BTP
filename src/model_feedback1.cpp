@@ -8,7 +8,7 @@
 #define UMAX 1000 // no. of times a user will tweet
 #define TMAX 1500 // max time to simulate
 #define GINIT 20 // initial no. of topics in global list
-#define rewire 0.1
+#define rewire 0.2
 
 using namespace std;
 
@@ -88,10 +88,10 @@ public:
     vector< vector<int> > localTopics;
     vector< vector<int> > ltime;
     Graph g;
-    double A, B, a, b, l1, l2;
+    double A, B, a, b, l1, l2, tr_par;
     ofstream outfile;
 
-    void init(int n, int k, double AA, double BB, double aa, double bb, double ll1, double ll2, string of_name) {
+    void init(int n, int k, double AA, double BB, double aa, double bb, double ll1, double ll2, double trpar, string of_name) {
         g.setNumUsers(n, k);
         localList.resize(n);
         localTopics.resize(n);
@@ -102,6 +102,7 @@ public:
         b = bb;
         l1 = ll1;
         l2 = ll2;
+        tr_par = trpar;
         outfile.open(of_name);
         cout << "model initialised" << endl;
     }
@@ -151,7 +152,7 @@ public:
             size = globalList.size();
             for (i = 0; i < size; i++) {
                 globalList[i] /= exp(a);
-                trendingList[i] = topic_num[i]*A/n;
+                //trendingList[i] = pow(topic_num[i]*A/n, tr_par);
             }
             for (i = 0; i < n; i++) {
                 size = localList[i].size();
@@ -231,15 +232,15 @@ int main(int argc, char const *argv[]) {
             string fname = "../data/nodesVsTimef1" + to_string(tid) + ".dat";
             Model m;
             switch(tid) {
-                    //     Model(n,    k,    A,  B,    a,   b,    l1,    l2)
-                case 0: m.init(10001, 200, 10000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
-                case 1: m.init(10001, 200, 8000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
-                case 2: m.init(10001, 200, 5000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
-                case 3: m.init(10001, 200, 2000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
-                case 4: m.init(10001, 200, 1000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
-                case 5: m.init(10001, 200, 500.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
-                case 6: m.init(10001, 200, 100.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
-                case 7: m.init(10001, 200, 10.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
+                    //     Model(n,    k,    A,     B,    a,   b,    l1,    l2,   tr_par)
+                case 0: m.init(10001, 200, 10000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, 0.0, fname); m.run(); break;
+                case 1: m.init(10001, 200, 8000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, 0.0, fname); m.run(); break;
+                case 2: m.init(10001, 200, 5000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, 0.0, fname); m.run(); break;
+                case 3: m.init(10001, 200, 2000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, 0.0, fname); m.run(); break;
+                case 4: m.init(10001, 200, 1000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, 0.0, fname); m.run(); break;
+                case 5: m.init(10001, 200, 500.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, 0.0, fname); m.run(); break;
+                case 6: m.init(10001, 200, 100.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, 0.0, fname); m.run(); break;
+                case 7: m.init(10001, 200, 10.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, 0.0, fname); m.run(); break;
                 default: ;
             }
         }
@@ -248,7 +249,7 @@ int main(int argc, char const *argv[]) {
         string fname = "../data/nodesVsTimef1.dat";
         Model m;
         // Model(n,    k,      A,    B,     a,   b,    l1,    l2)
-        m.init(10001, 200, 10000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, fname);
+        m.init(10001, 200, 10000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, 0.0, fname);
         m.run();
     }
     return 0;

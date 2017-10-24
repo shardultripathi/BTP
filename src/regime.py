@@ -15,7 +15,7 @@ numProcesses = int(sys.argv[1])
 
 
 size = 500
-fname = '../data/nodesVsTime'
+fname = '../data/nodesVsTimef1'
 for iter in range(numProcesses):
 	y = [0.0]*500
 	plt.clf()
