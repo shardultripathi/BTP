@@ -2,6 +2,7 @@
 #include <vector>
 #include <random>
 #include <fstream>
+#include <algorithm>
 #include <math.h>
 #include <omp.h>
 #define GMAX 500 // no. of topics to be added to globalList
