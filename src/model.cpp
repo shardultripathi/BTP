@@ -194,7 +194,7 @@ public:
 int main(int argc, char const *argv[]) {
     // code
     if (argc < 3) {
-        cout << "usage: " << argv[0] << " <0/1>\n";
+        cout << "usage: " << argv[0] << " <0/1> <number of users>\n";
         return -1;
     }
 

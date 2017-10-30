@@ -12,15 +12,20 @@
 
 using namespace std;
 
+void trim(string &str) {
+    int i = 0, j = 0;
+    while (str[i] == ' ') {i++;}
+    while (str[i] != ' ') {str[j++] = str[i++];}
+    str = str.substr(0,j);
+}
+
 class Graph {
 public:
     int numUsers;
-    int deg;
     vector< vector<int> > ngb;
-    void setNumUsers(int n, int k) {
+    void setNumUsers(int n) {
         numUsers = n;
         ngb.resize(n);
-        deg = k;
     }
 
     void addEdge(int u, int v) {
@@ -28,53 +33,26 @@ public:
         ngb[v].push_back(u);
     }
 
-    bool checkEdge(int u, int v) {
-        int size = ngb[u].size();
-        for (int i = 0; i < size; i++) {
-            if(ngb[u][i] == v)
-                return true;
-        }
-        return false;
-    }
-
-    void changeEdge(int u, int v, int w) {
-        int i,size;
-        ngb[w].push_back(u);
-        size = ngb[v].size();
-        for(i = 0; i < size; i++) {
-            if(ngb[v][i] == u) {
-                ngb[v].erase(ngb[v].begin()+i);
-                break;
-            }
-        }
-    }
-
     void init() {
-        int lo, hi, n = numUsers/2;
-        int i,j,w;
-        for (i = 0; i < numUsers; i++) {
-            for (j = 0; j < deg/2; j++) {
-                do {
-                    lo = (numUsers + i - rand()%n + 1) % numUsers;
-                } while(checkEdge(i,lo));
-                addEdge(i, lo);
-                do {
-                    hi = (i + rand()%n + 1) % numUsers;
-                } while(checkEdge(i,hi));
-                addEdge(i, hi);
-            }
+        int a, b;
+        string str;
+        ifstream fin;
+        fin.open("edges");
+        while (fin >> str) {
+            replace(str.begin(), str.end(), '[', ' ');
+            replace(str.begin(), str.end(), '(', ' ');
+            replace(str.begin(), str.end(), ',', ' ');
+            trim(str);
+            a = stoi(str);
+            fin >> str;
+            replace(str.begin(), str.end(), ']', ' ');
+            replace(str.begin(), str.end(), ')', ' ');
+            replace(str.begin(), str.end(), ',', ' ');
+            trim(str);
+            b = stoi(str);
+            addEdge(a,b);
         }
-        for (i = 0; i < numUsers; i++) {
-            for (j = 0; j < ngb[i].size(); j++) {
-                if (rand() / (RAND_MAX + 1.) < rewire) {
-                    do {
-                        w = rand()%numUsers;
-                    } while (checkEdge(i,w));
-                    changeEdge(i,ngb[i][j],w);
-                    ngb[i][j] = w;
-                }
-            }
-        }
+        fin.close();
         cout << "graph initialised" << endl;
     }
 };
@@ -91,8 +69,8 @@ public:
     double A, B, a, b, l1, l2, tr_par;
     ofstream outfile;
 
-    void init(int n, int k, double AA, double BB, double aa, double bb, double ll1, double ll2, double trpar, string of_name) {
-        g.setNumUsers(n, k);
+    void init(int n, double AA, double BB, double aa, double bb, double ll1, double ll2, double trpar, string of_name) {
+        g.setNumUsers(n);
         localList.resize(n);
         localTopics.resize(n);
         ltime.resize(n);
@@ -219,10 +197,12 @@ public:
 
 int main(int argc, char const *argv[]) {
     // code
-    if (argc < 2) {
-        cout << "usage: " << argv[0] << " <0/1>\n";
+    if (argc < 3) {
+        cout << "usage: " << argv[0] << " <0/1> <number of users>\n";
         return -1;
     }
+
+    int n = stoi(argv[2]);
 
     if (argv[1][0] == '1') {
         #pragma omp parallel
@@ -232,15 +212,15 @@ int main(int argc, char const *argv[]) {
             string fname = "../data/nodesVsTimef1" + to_string(tid) + ".dat";
             Model m;
             switch(tid) {
-                    //     Model(n,    k,    A,     B,    a,   b,    l1,    l2,   tr_par)
-                case 0: m.init(10001, 200, 10000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, 0.0, fname); m.run(); break;
-                case 1: m.init(10001, 200, 8000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, 0.0, fname); m.run(); break;
-                case 2: m.init(10001, 200, 5000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, 0.0, fname); m.run(); break;
-                case 3: m.init(10001, 200, 2000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, 0.0, fname); m.run(); break;
-                case 4: m.init(10001, 200, 1000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, 0.0, fname); m.run(); break;
-                case 5: m.init(10001, 200, 500.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, 0.0, fname); m.run(); break;
-                case 6: m.init(10001, 200, 100.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, 0.0, fname); m.run(); break;
-                case 7: m.init(10001, 200, 10.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, 0.0, fname); m.run(); break;
+                    //     Model(n,  A,     B,    a,   b,    l1,    l2,   tr_par)
+                case 0: m.init(n, 10000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, 0.0, fname); m.run(); break;
+                case 1: m.init(n, 8000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, 0.0, fname); m.run(); break;
+                case 2: m.init(n, 5000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, 0.0, fname); m.run(); break;
+                case 3: m.init(n, 2000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, 0.0, fname); m.run(); break;
+                case 4: m.init(n, 1000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, 0.0, fname); m.run(); break;
+                case 5: m.init(n, 500.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, 0.0, fname); m.run(); break;
+                case 6: m.init(n, 100.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, 0.0, fname); m.run(); break;
+                case 7: m.init(n, 10.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, 0.0, fname); m.run(); break;
                 default: ;
             }
         }
@@ -248,8 +228,8 @@ int main(int argc, char const *argv[]) {
         srand(time(NULL));
         string fname = "../data/nodesVsTimef1.dat";
         Model m;
-        // Model(n,    k,      A,    B,     a,   b,    l1,    l2)
-        m.init(10001, 200, 10000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, 0.0, fname);
+        // Model(n,   A,    B,     a,   b,    l1,    l2)
+        m.init(n, 10000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, 0.0, fname);
         m.run();
     }
     return 0;
