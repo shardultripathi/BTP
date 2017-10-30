@@ -226,7 +226,7 @@ int main(int argc, char const *argv[]) {
         string fname = "../data/nodesVsTime0.dat";
         Model m;
         // Model(n,   A,    B,     a,   b,    l1,    l2)
-        m.init(n, 10000.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, fname);
+        m.init(n, 1.0, 100.0, 0.2, 0.1, 1.0/5, 1.0/3, fname);
         m.run();
     }
     return 0;
