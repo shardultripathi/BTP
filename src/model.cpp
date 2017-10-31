@@ -210,14 +210,14 @@ int main(int argc, char const *argv[]) {
             Model m;
             switch(tid) {
                     //     Model(n, A,       B,    a,   b,    l1,    l2)
-                case 0: m.init(n, 10000.0, 100.0, 0.15, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
-                case 1: m.init(n, 10000.0, 100.0, 0.1, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
-                case 2: m.init(n, 10000.0, 100.0, 0.01, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
-                case 3: m.init(n, 10000.0, 100.0, 0.005, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
-                case 4: m.init(n, 100.0, 100.0, 0.3, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
-                case 5: m.init(n, 100.0, 100.0, 0.1, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
-                case 6: m.init(n, 100.0, 100.0, 0.01, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
-                case 7: m.init(n, 100.0, 100.0, 0.005, 0.1, 1.0/5, 1.0/3, fname); m.run(); break;
+                case 0: m.init(n, 10000.0, 100.0, 0.2, 0.5, 1.0/5, 1.0/3, fname); m.run(); break;
+                case 1: m.init(n, 10000.0, 100.0, 0.2, 0.2, 1.0/5, 1.0/3, fname); m.run(); break;
+                case 2: m.init(n, 10000.0, 100.0, 0.2, 0.01, 1.0/5, 1.0/3, fname); m.run(); break;
+                case 3: m.init(n, 10000.0, 100.0, 0.2, 0.005, 1.0/5, 1.0/3, fname); m.run(); break;
+                case 4: m.init(n, 100.0, 100.0, 0.2, 0.5, 1.0/5, 1.0/3, fname); m.run(); break;
+                case 5: m.init(n, 100.0, 100.0, 0.2, 0.2, 1.0/5, 1.0/3, fname); m.run(); break;
+                case 6: m.init(n, 100.0, 100.0, 0.2, 0.01, 1.0/5, 1.0/3, fname); m.run(); break;
+                case 7: m.init(n, 100.0, 100.0, 0.2, 0.005, 1.0/5, 1.0/3, fname); m.run(); break;
                 default: ;
             }
         }
