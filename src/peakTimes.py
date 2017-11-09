@@ -20,6 +20,8 @@ for iter in range(numProcesses):
     y = [-1.0]*size
     init = [0]*size
     maxtime = [0]*size
+    first = [0]*size
+    last = [0]*size
     time = 0
     plt.clf()
     with open(fname+str(iter)+'.dat') as file:
@@ -33,14 +35,26 @@ for iter in range(numProcesses):
                         init[i] = time
                     y[i] = x
                     maxtime[i] = time
+                if (x != 0) and (first[i] == 0):
+                	first[i] = time
+                if (x == 0) and (first[i] != 0) and (last[i] == 0):
+                	last[i] = time
                 size = i
 
 
     x = [i for i in range(1,size-22)]
     y = y[24:size+1]
     init = init[24:size+1]
+    first = first[24:size+1]
+    last = last[24:size+1]
+    for i in range(size-23):
+    	if last[i]==0:
+    		last[i] = time+1
     maxtime = maxtime[24:size+1]
     maxtime = [maxtime[i] - init[i] for i in range(size-23)]
+    lifetime = [last[i] - first[i] for i in range(size-23)]
+    print('Mean lifetime:',statistics.mean(lifetime))
+
 
     neg = 0
     for i in range(size-23):
