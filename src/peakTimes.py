@@ -9,8 +9,8 @@ import sys
 from math import log
 
 threshold1 = 40
-threshold2 = 200
-threshold3 = 30
+threshold2 = 20
+threshold3 = 10
 numProcesses = int(sys.argv[1])
 
 
@@ -36,9 +36,13 @@ for iter in range(numProcesses):
                     y[i] = x
                     maxtime[i] = time
                 if (x != 0) and (first[i] == 0):
-                	first[i] = time
-                if (x == 0) and (first[i] != 0) and (last[i] == 0):
-                	last[i] = time
+                    first[i] = time
+                if (x < 4):
+                    if (first[i] != 0) and (last[i] == 0):
+                        last[i] = time
+                else:
+                    if (last[i] != 0):
+                        last[i] = 0
                 size = i
 
 
@@ -48,31 +52,29 @@ for iter in range(numProcesses):
     first = first[24:size+1]
     last = last[24:size+1]
     for i in range(size-23):
-    	if last[i]==0:
-    		last[i] = time+1
+        if last[i]==0 and first[i] != 0:
+            last[i] = time+1
     maxtime = maxtime[24:size+1]
     maxtime = [maxtime[i] - init[i] for i in range(size-23)]
     lifetime = [last[i] - first[i] for i in range(size-23)]
-    print('Mean lifetime:',statistics.mean(lifetime))
-
 
     neg = 0
     for i in range(size-23):
-    	if y[i] < threshold3:
-    		neg = neg + 1
+        if lifetime[i] < threshold3:
+            neg = neg + 1
     print('negligible count:', neg)
 
     sdy = statistics.stdev(maxtime)
     print('Standard Deviation:', sdy)
     if sdy < threshold1:
-    	print(iter, ': Super-viral regime')
+        print(iter, ': Super-viral regime')
     elif neg > threshold2:
-    	print(iter, ': Sub-viral regime')
+        print(iter, ': Sub-viral regime')
     else:
-    	print(iter, ': Viral regime')
+        print(iter, ': Viral regime')
 
 
-    plt.plot(x, maxtime, 'o', label='Time at which highest peak is encountered')
+    plt.plot(x, lifetime, 'o', label='Lifetime of topic')
     plt.legend(loc='upper right')
     plt.xlabel('Topic id')
     plt.savefig('../figures/peaktime'+str(iter)+'.png')
