@@ -67,8 +67,8 @@ with open('results.txt', 'a') as outfile:
 
         sdy = statistics.stdev(maxtime)
         if sdy < threshold1:
-            print(iterator, iter, ': Super-viral regime', file=outfile)
+            print(iterator, iter, '1', file=outfile)
         elif neg > threshold2:
-            print(iterator, iter, ': Sub-viral regime', file=outfile)
+            print(iterator, iter, '3', file=outfile)
         else:
-            print(iterator, iter, ': Viral regime', file=outfile)
+            print(iterator, iter, '2', file=outfile)
