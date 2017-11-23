@@ -74,7 +74,7 @@ for iter in range(numProcesses):
         print(iter, ': Viral regime')
 
 
-    plt.plot(x, lifetime, 'o', label='Lifetime of topic')
+    plt.plot(x, maxtime, 'o', label='Lifetime of topic')
     plt.legend(loc='upper right')
     plt.xlabel('Topic id')
     plt.savefig('../figures/peaktime'+str(iter)+'.png')
